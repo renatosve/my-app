@@ -2,7 +2,6 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>検索ツール</title>
 
 <style>
 * {
@@ -14,14 +13,12 @@ body {
   font-family: sans-serif;
   background: linear-gradient(180deg, #0f172a, #020617);
   color: white;
-  overflow-x: hidden;
 }
 
 .container {
   padding: 16px;
 }
 
-/* 入力エリア */
 .box {
   background: rgba(255,255,255,0.05);
   backdrop-filter: blur(10px);
@@ -40,6 +37,22 @@ input {
   font-size: 16px;
 }
 
+/* タグ */
+.tags {
+  margin-top: 15px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tag {
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.1);
+  font-size: 13px;
+  cursor: pointer;
+}
+
 /* カード */
 .card {
   margin-top: 15px;
@@ -50,7 +63,6 @@ input {
   border: 1px solid rgba(255,255,255,0.1);
 }
 
-/* ボタン */
 .linkBtn {
   display: inline-block;
   margin-top: 10px;
@@ -62,7 +74,6 @@ input {
   font-size: 14px;
 }
 
-/* メッセージ */
 .empty {
   margin-top: 20px;
   color: #aaa;
@@ -77,7 +88,10 @@ input {
 
   <div class="box">
     <h2>検索</h2>
-    <input id="k" placeholder="キーワードを入力（例：QA）">
+    <input id="k" placeholder="キーワードを入力">
+
+    <!-- タグ -->
+    <div id="tags" class="tags"></div>
   </div>
 
   <div id="list"></div>
@@ -86,6 +100,35 @@ input {
 
 <script>
 const API = "https://script.google.com/macros/s/AKfycbzOapJUtzIdFnukwpc92_ZZRueG9MiFVVb2VfAsYnutr2CsKby7Hc_Mcf_ENxumtyYF/exec";
+
+// キーワード一覧
+const keywords = [
+"未経験者向け","初ジャッジ","事前準備","目標","改善点",
+"大会進行","TIPS","サイドイベント","DC","フィーチャー",
+"トラブル対応","投了","総合ルール","デッキ不備","不正行為",
+"スリーブ","体力差","マークド","失格調査","遅いプレイ",
+"TL","HJ","質問ch","QA"
+];
+
+// タグ生成
+const tagContainer = document.getElementById("tags");
+
+keywords.forEach(word => {
+  const tag = document.createElement("div");
+  tag.className = "tag";
+  tag.textContent = word;
+
+  tag.onclick = () => {
+    document.getElementById("k").value = word;
+    search();
+
+    // ハイライト
+    document.querySelectorAll(".tag").forEach(t => t.style.background = "rgba(255,255,255,0.1)");
+    tag.style.background = "#6366f1";
+  };
+
+  tagContainer.appendChild(tag);
+});
 
 // リアルタイム検索
 document.getElementById("k").addEventListener("input", search);
@@ -121,7 +164,6 @@ async function search() {
       </a>
     `;
 
-    // カード全体クリックでも開く
     card.onclick = () => {
       window.open(url, "_blank");
     };
