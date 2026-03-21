@@ -4,9 +4,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 body {
   margin: 0;
@@ -15,16 +13,14 @@ body {
   color: white;
 }
 
-.container {
-  padding: 16px;
-}
+.container { padding: 16px; }
 
 .box {
   background: rgba(255,255,255,0.05);
   backdrop-filter: blur(10px);
   border-radius: 20px;
   padding: 20px;
-  margin-top: 40px;
+  margin-top: 30px;
   border: 1px solid rgba(255,255,255,0.1);
 }
 
@@ -33,23 +29,44 @@ input {
   padding: 15px;
   border-radius: 12px;
   border: none;
-  margin-top: 15px;
+  margin-top: 10px;
   font-size: 16px;
 }
 
-/* タグ */
+/* 共通タグ */
 .tags {
-  margin-top: 15px;
+  margin-top: 10px;
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
 }
 
+/* よく使う */
+.favorite {
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #f59e0b, #fbbf24);
+  color: black;
+  font-weight: bold;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+/* カテゴリ */
+.category {
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.15);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+/* タグ */
 .tag {
   padding: 8px 12px;
   border-radius: 999px;
   background: rgba(255,255,255,0.1);
-  font-size: 13px;
+  font-size: 12px;
   cursor: pointer;
 }
 
@@ -59,7 +76,6 @@ input {
   padding: 16px;
   border-radius: 16px;
   background: rgba(255,255,255,0.05);
-  backdrop-filter: blur(10px);
   border: 1px solid rgba(255,255,255,0.1);
 }
 
@@ -90,7 +106,15 @@ input {
     <h2>検索</h2>
     <input id="k" placeholder="キーワードを入力">
 
-    <!-- タグ -->
+    <!-- ⭐ よく使う -->
+    <div style="margin-top:15px;font-size:14px;color:#aaa;">⭐ よく使う</div>
+    <div id="favorites" class="tags"></div>
+
+    <!-- 📊 カテゴリ -->
+    <div style="margin-top:15px;font-size:14px;color:#aaa;">カテゴリ</div>
+    <div id="categories" class="tags"></div>
+
+    <!-- 🏷 タグ -->
     <div id="tags" class="tags"></div>
   </div>
 
@@ -101,36 +125,62 @@ input {
 <script>
 const API = "https://script.google.com/macros/s/AKfycbzOapJUtzIdFnukwpc92_ZZRueG9MiFVVb2VfAsYnutr2CsKby7Hc_Mcf_ENxumtyYF/exec";
 
-// キーワード一覧
-const keywords = [
-"未経験者向け","初ジャッジ","事前準備","目標","改善点",
-"大会進行","TIPS","サイドイベント","DC","フィーチャー",
-"トラブル対応","投了","総合ルール","デッキ不備","不正行為",
-"スリーブ","体力差","マークド","失格調査","遅いプレイ",
-"TL","HJ","質問ch","QA"
-];
+// ⭐ よく使う
+const favorites = ["QA","トラブル対応","総合ルール"];
 
-// タグ生成
-const tagContainer = document.getElementById("tags");
+// 📊 カテゴリ
+const categories = {
+  "初心者": ["未経験者向け","初ジャッジ","事前準備","目標","改善点"],
+  "大会運営": ["大会進行","TIPS","サイドイベント","DC","フィーチャー"],
+  "トラブル": ["トラブル対応","投了","デッキ不備","不正行為","スリーブ","体力差","マークド","失格調査","遅いプレイ"],
+  "ルール": ["総合ルール","QA","質問ch","TL","HJ"]
+};
 
-keywords.forEach(word => {
+// ⭐ よく使う生成
+const favContainer = document.getElementById("favorites");
+favorites.forEach(word => {
   const tag = document.createElement("div");
-  tag.className = "tag";
+  tag.className = "favorite";
   tag.textContent = word;
 
   tag.onclick = () => {
     document.getElementById("k").value = word;
     search();
-
-    // ハイライト
-    document.querySelectorAll(".tag").forEach(t => t.style.background = "rgba(255,255,255,0.1)");
-    tag.style.background = "#6366f1";
   };
 
-  tagContainer.appendChild(tag);
+  favContainer.appendChild(tag);
 });
 
-// リアルタイム検索
+// 📊 カテゴリ生成
+const categoryContainer = document.getElementById("categories");
+const tagContainer = document.getElementById("tags");
+
+Object.keys(categories).forEach(cat => {
+  const btn = document.createElement("div");
+  btn.className = "category";
+  btn.textContent = cat;
+
+  btn.onclick = () => {
+    tagContainer.innerHTML = "";
+
+    categories[cat].forEach(word => {
+      const tag = document.createElement("div");
+      tag.className = "tag";
+      tag.textContent = word;
+
+      tag.onclick = () => {
+        document.getElementById("k").value = word;
+        search();
+      };
+
+      tagContainer.appendChild(tag);
+    });
+  };
+
+  categoryContainer.appendChild(btn);
+});
+
+// 🔍 検索
 document.getElementById("k").addEventListener("input", search);
 
 async function search() {
@@ -158,15 +208,12 @@ async function search() {
       <div style="font-size:18px;font-weight:bold;">
         ${title}
       </div>
-
       <a href="${url}" target="_blank" class="linkBtn">
-        📄 ドキュメントを開く
+        📄 開く
       </a>
     `;
 
-    card.onclick = () => {
-      window.open(url, "_blank");
-    };
+    card.onclick = () => window.open(url, "_blank");
 
     list.appendChild(card);
   });
