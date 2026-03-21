@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+
+<body>
+
+<h2>検索</h2>
+<input id="k">
+<button onclick="search()">検索</button>
+
+<div id="list"></div>
+
+<h2>登録</h2>
+<input id="name" placeholder="名前">
+<button onclick="add()">登録</button>
+
+<script>
+const API = "ここにGASのURL";
+
+async function search() {
+  const res = await fetch(API + "?keyword=" + document.getElementById("k").value);
+  const data = await res.json();
+
+  const list = document.getElementById("list");
+  list.innerHTML = "";
+
+  data.forEach(row => {
+    list.innerHTML += "<div>" + row[1] + "</div>";
+  });
+}
+
+async function add() {
+  await fetch(API, {
+    method: "POST",
+    body: JSON.stringify({
+      name: document.getElementById("name").value,
+      status: 10
+    })
+  });
+
+  alert("OK");
+}
+</script>
+
+</body>
+</html>
