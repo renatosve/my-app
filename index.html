@@ -1,314 +1,274 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Judge Search Tool</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Judge Portal v2</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: linear-gradient(180deg, #0f172a, #020617);
+      color: white;
+      min-height: 100vh;
+    }
+    .container { padding: 16px; max-width: 500px; margin: 0 auto; }
 
-<style>
-* { box-sizing: border-box; }
+    /* ボックス共通 */
+    .box {
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(12px);
+      border-radius: 20px;
+      padding: 20px;
+      margin-bottom: 20px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
 
-body {
-  margin: 0;
-  font-family: 'Helvetica Neue', Arial, sans-serif;
-  background: linear-gradient(180deg, #0f172a, #020617);
-  color: white;
-  min-height: 100vh;
-}
+    /* 登録フォーム */
+    .admin-toggle {
+      text-align: right;
+      margin-bottom: 10px;
+    }
+    .admin-btn {
+      background: none;
+      border: 1px solid rgba(255,255,255,0.3);
+      color: #94a3b8;
+      padding: 4px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    #addForm { display: none; margin-top: 10px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px; }
+    
+    /* 入力要素 */
+    input {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(0,0,0,0.2);
+      color: white;
+      margin-bottom: 10px;
+      font-size: 16px;
+      outline: none;
+    }
+    input:focus { border-color: #6366f1; }
+    
+    .submit-btn {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      border: none;
+      background: #10b981;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
 
-.container { padding: 16px; max-width: 600px; margin: 0 auto; }
+    /* タグ関連 */
+    .tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    .tag-label { font-size: 12px; color: #94a3b8; margin-top: 15px; }
+    
+    .favorite {
+      padding: 8px 14px; border-radius: 20px;
+      background: linear-gradient(90deg, #f59e0b, #fbbf24);
+      color: black; font-weight: bold; font-size: 12px; cursor: pointer;
+    }
+    .category {
+      padding: 8px 14px; border-radius: 20px;
+      background: rgba(255,255,255,0.15); font-size: 12px; cursor: pointer;
+    }
+    .category.active { background: #6366f1; }
+    .subtag {
+      padding: 6px 12px; border-radius: 8px;
+      background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99,102,241,0.3);
+      font-size: 11px; cursor: pointer; animation: fadeIn 0.3s;
+    }
 
-.box {
-  background: rgba(255,255,255,0.05);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-radius: 24px;
-  padding: 24px;
-  margin-top: 20px;
-  border: 1px solid rgba(255,255,255,0.1);
-  box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-}
+    /* 検索結果カード */
+    .card {
+      background: rgba(255,255,255,0.05);
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 12px;
+      border: 1px solid rgba(255,255,255,0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+    }
+    .card:hover { background: rgba(255,255,255,0.1); }
+    .linkBtn {
+      padding: 8px 16px; border-radius: 8px;
+      background: linear-gradient(90deg, #6366f1, #8b5cf6);
+      color: white; text-decoration: none; font-size: 13px;
+    }
 
-h2 { margin-top: 0; font-size: 1.2rem; color: #e2e8f0; }
+    .loading { text-align: center; color: #6366f1; margin: 20px; }
+    .empty { text-align: center; color: #64748b; margin-top: 40px; }
 
-.input-wrapper { position: relative; }
-
-input {
-  width: 100%;
-  padding: 15px 45px 15px 15px;
-  border-radius: 12px;
-  border: 1px solid rgba(255,255,255,0.2);
-  background: rgba(255,255,255,0.05);
-  color: white;
-  font-size: 16px;
-  outline: none;
-  transition: border 0.3s;
-}
-
-input:focus { border-color: #6366f1; }
-
-.clear-btn {
-  position: absolute;
-  right: 15px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  color: #aaa;
-  font-size: 20px;
-  cursor: pointer;
-  display: none;
-}
-
-.tags {
-  margin-top: 12px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-/* ⭐ よく使う */
-.favorite {
-  padding: 8px 16px;
-  border-radius: 999px;
-  background: linear-gradient(90deg, #f59e0b, #fbbf24);
-  color: #000;
-  font-weight: bold;
-  font-size: 12px;
-  cursor: pointer;
-  transition: transform 0.1s;
-}
-
-/* カテゴリ */
-.category {
-  padding: 8px 16px;
-  border-radius: 999px;
-  background: rgba(255,255,255,0.15);
-  font-size: 12px;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-.category:hover { background: rgba(255,255,255,0.25); }
-.category.active { background: #6366f1; }
-
-/* タグ */
-.tag {
-  padding: 6px 12px;
-  border-radius: 8px;
-  background: rgba(99, 102, 241, 0.2);
-  border: 1px solid rgba(99, 102, 241, 0.4);
-  font-size: 11px;
-  cursor: pointer;
-  animation: fadeIn 0.3s ease;
-}
-
-/* カード */
-.card {
-  margin-top: 15px;
-  padding: 18px;
-  border-radius: 16px;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.1);
-  transition: transform 0.2s, background 0.2s;
-  cursor: pointer;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.card:hover {
-  background: rgba(255,255,255,0.1);
-  transform: translateY(-2px);
-}
-
-.linkBtn {
-  padding: 8px 16px;
-  border-radius: 10px;
-  background: linear-gradient(90deg, #6366f1, #8b5cf6);
-  color: white;
-  text-decoration: none;
-  font-size: 13px;
-  font-weight: bold;
-}
-
-.loading {
-  text-align: center;
-  padding: 20px;
-  color: #6366f1;
-}
-
-.empty {
-  margin-top: 40px;
-  color: #64748b;
-  text-align: center;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(5px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@media (max-width: 480px) {
-  .card { flex-direction: column; align-items: flex-start; gap: 12px; }
-  .linkBtn { width: 100%; text-align: center; }
-}
-</style>
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
 </head>
-
 <body>
 
 <div class="container">
+  <div class="admin-toggle">
+    <button class="admin-btn" onclick="toggleAddForm()">＋ データを登録する</button>
+  </div>
+
+  <div id="addForm" class="box" style="display: none;">
+    <h3 style="margin-top:0; font-size: 16px;">新規データ登録</h3>
+    <input id="newTitle" placeholder="タイトル (例: デッキ不備の対応)">
+    <input id="newUrl" placeholder="URL (https://...)">
+    <button class="submit-btn" onclick="registerData()">スプレッドシートに登録</button>
+    <div id="regMsg" style="text-align:center; font-size:12px; margin-top:10px;"></div>
+  </div>
 
   <div class="box">
-    <h2>ナレッジ検索</h2>
-    <div class="input-wrapper">
-      <input id="k" placeholder="キーワードを入力..." autocomplete="off">
-      <button id="clear" class="clear-btn">&times;</button>
-    </div>
+    <h2 style="margin-top:0; font-size: 18px;">ナレッジ検索</h2>
+    <input id="k" placeholder="キーワードを入力..." autocomplete="off">
 
-    <div style="margin-top:20px;font-size:13px;color:#94a3b8;">⭐ よく使う</div>
+    <div class="tag-label">⭐ よく使う</div>
     <div id="favorites" class="tags"></div>
 
-    <div style="margin-top:20px;font-size:13px;color:#94a3b8;">カテゴリから絞り込む</div>
+    <div class="tag-label">📊 カテゴリ</div>
     <div id="categories" class="tags"></div>
-
-    <div id="tags" class="tags" style="margin-top:15px; min-height: 30px;"></div>
+    <div id="subtags" class="tags"></div>
   </div>
 
   <div id="list"></div>
-
 </div>
 
 <script>
-const API = "https://script.google.com/macros/s/AKfycbzOapJUtzIdFnukwpc92_ZZRueG9MiFVVb2VfAsYnutr2CsKby7Hc_Mcf_ENxumtyYF/exec";
+  // 🔴 ここにデプロイしたGASのURLを貼り付けてください
+  const API = "https://script.google.com/macros/s/AKfycbwiJ4r4YWUOqItC53GVU8uGkmQLtAWKbtT6vu96A-rGZe8siQvHWevnr8mX-hIFRD0fOw/exec";
 
-const favorites = ["QA","トラブル対応","総合ルール"];
-const categories = {
-  "初心者": ["未経験者向け","初ジャッジ","事前準備","目標","改善点"],
-  "大会運営": ["大会進行","TIPS","サイドイベント","DC","フィーチャー"],
-  "トラブル": ["トラブル対応","投了","デッキ不備","不正行為","スリーブ","体力差","マークド","失格調査","遅いプレイ"],
-  "ルール": ["総合ルール","QA","質問ch","TL","HJ"]
-};
-
-const inputEl = document.getElementById("k");
-const clearBtn = document.getElementById("clear");
-const listEl = document.getElementById("list");
-const tagContainer = document.getElementById("tags");
-let lastRequestTime = 0; // 最新のリクエストを追跡
-
-// ⭐ よく使う生成
-const favContainer = document.getElementById("favorites");
-favorites.forEach(word => {
-  const tag = document.createElement("div");
-  tag.className = "favorite";
-  tag.textContent = word;
-  tag.onclick = () => {
-    inputEl.value = word;
-    triggerSearch();
+  const favorites = ["QA", "トラブル対応", "総合ルール"];
+  const categories = {
+    "初心者": ["未経験者向け", "初ジャッジ", "事前準備", "目標"],
+    "大会運営": ["大会進行", "TIPS", "サイドイベント", "DC", "フィーチャー"],
+    "トラブル": ["トラブル対応", "投了", "デッキ不備", "不正行為", "マークド", "遅いプレイ"],
+    "ルール": ["総合ルール", "QA", "質問ch", "TL"]
   };
-  favContainer.appendChild(tag);
-});
 
-// 📊 カテゴリ生成
-const categoryContainer = document.getElementById("categories");
-Object.keys(categories).forEach(cat => {
-  const btn = document.createElement("div");
-  btn.className = "category";
-  btn.textContent = cat;
+  const inputEl = document.getElementById("k");
+  const listEl = document.getElementById("list");
+  let searchTimer;
 
-  btn.onclick = () => {
-    // アクティブ表示の切り替え
+  // --- 初期化 ---
+  window.onload = () => {
+    renderTags();
+  };
+
+  function renderTags() {
+    const favContainer = document.getElementById("favorites");
+    favorites.forEach(word => {
+      const el = document.createElement("div");
+      el.className = "favorite";
+      el.textContent = word;
+      el.onclick = () => { inputEl.value = word; search(); };
+      favContainer.appendChild(el);
+    });
+
+    const catContainer = document.getElementById("categories");
+    Object.keys(categories).forEach(cat => {
+      const el = document.createElement("div");
+      el.className = "category";
+      el.textContent = cat;
+      el.onclick = () => showSubtags(cat, el);
+      catContainer.appendChild(el);
+    });
+  }
+
+  function showSubtags(cat, btn) {
     document.querySelectorAll('.category').forEach(el => el.classList.remove('active'));
     btn.classList.add('active');
-
-    tagContainer.innerHTML = "";
+    
+    const subContainer = document.getElementById("subtags");
+    subContainer.innerHTML = "";
     categories[cat].forEach(word => {
-      const tag = document.createElement("div");
-      tag.className = "tag";
-      tag.textContent = word;
-      tag.onclick = () => {
-        inputEl.value = word;
-        triggerSearch();
-      };
-      tagContainer.appendChild(tag);
+      const el = document.createElement("div");
+      el.className = "subtag";
+      el.textContent = word;
+      el.onclick = () => { inputEl.value = word; search(); };
+      subContainer.appendChild(el);
     });
-  };
-  categoryContainer.appendChild(btn);
-});
-
-// 🔍 検索実行（デバウンス処理）
-let timer;
-inputEl.addEventListener("input", () => {
-  clearBtn.style.display = inputEl.value ? "block" : "none";
-  clearTimeout(timer);
-  timer = setTimeout(search, 400); // 400ms待機
-});
-
-clearBtn.onclick = () => {
-  inputEl.value = "";
-  clearBtn.style.display = "none";
-  listEl.innerHTML = "";
-  inputEl.focus();
-};
-
-function triggerSearch() {
-  clearBtn.style.display = "block";
-  search();
-}
-
-async function search() {
-  const keyword = inputEl.value.trim();
-  if (!keyword) {
-    listEl.innerHTML = "";
-    return;
   }
 
-  const requestTime = Date.now();
-  lastRequestTime = requestTime;
+  // --- 検索機能 ---
+  inputEl.addEventListener("input", () => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(search, 400);
+  });
 
-  listEl.innerHTML = `<div class="loading">検索中...</div>`;
+  async function search() {
+    const keyword = inputEl.value.trim();
+    if (!keyword) { listEl.innerHTML = ""; return; }
 
-  try {
-    const res = await fetch(API + "?keyword=" + encodeURIComponent(keyword));
-    const data = await res.json();
+    listEl.innerHTML = `<div class="loading">検索中...</div>`;
 
-    // 別の新しい検索が走っていた場合は結果を破棄
-    if (requestTime !== lastRequestTime) return;
+    try {
+      const res = await fetch(`${API}?keyword=${encodeURIComponent(keyword)}`);
+      const data = await res.json();
+      
+      listEl.innerHTML = "";
+      if (data.length === 0) {
+        listEl.innerHTML = `<div class="empty">該当なし</div>`;
+        return;
+      }
 
-    listEl.innerHTML = "";
-
-    if (data.length === 0) {
-      listEl.innerHTML = "<div class='empty'>該当する項目が見つかりませんでした</div>";
-      return;
-    }
-
-    data.forEach(row => {
-      const title = row[1];
-      const url = row[2];
-
-      const card = document.createElement("div");
-      card.className = "card";
-      card.innerHTML = `
-        <div style="font-size:16px; font-weight:bold; color:#f8fafc; padding-right:10px;">
-          ${title}
-        </div>
-        <a href="${url}" target="_blank" class="linkBtn">📄 開く</a>
-      `;
-
-      // カード全体をクリック可能に
-      card.onclick = (e) => {
-        if (e.target.tagName !== 'A') {
-          window.open(url, "_blank");
-        }
-      };
-
-      listEl.appendChild(card);
-    });
-  } catch (error) {
-    if (requestTime === lastRequestTime) {
-      listEl.innerHTML = "<div class='empty'>通信エラーが発生しました</div>";
+      data.forEach(row => {
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+          <div style="font-weight:bold; flex:1; padding-right:10px;">${row[1]}</div>
+          <a href="${row[2]}" target="_blank" class="linkBtn">📄 開く</a>
+        `;
+        card.onclick = (e) => { if(e.target.tagName !== 'A') window.open(row[2], "_blank"); };
+        listEl.appendChild(card);
+      });
+    } catch (e) {
+      listEl.innerHTML = `<div class="empty">エラーが発生しました</div>`;
     }
   }
-}
+
+  // --- 登録機能 ---
+  function toggleAddForm() {
+    const f = document.getElementById("addForm");
+    f.style.display = (f.style.display === "none") ? "block" : "none";
+  }
+
+  async function registerData() {
+    const title = document.getElementById("newTitle").value;
+    const url = document.getElementById("newUrl").value;
+    const msg = document.getElementById("regMsg");
+
+    if (!title || !url) return alert("入力してください");
+
+    msg.textContent = "送信中...";
+    msg.style.color = "#aaa";
+
+    try {
+      const res = await fetch(API, {
+        method: "POST",
+        body: JSON.stringify({ title, url })
+      });
+      const result = await res.json();
+
+      if (result.status === "success") {
+        msg.textContent = "登録完了！";
+        msg.style.color = "#10b981";
+        document.getElementById("newTitle").value = "";
+        document.getElementById("newUrl").value = "";
+        setTimeout(() => { toggleAddForm(); msg.textContent = ""; }, 2000);
+      }
+    } catch (e) {
+      msg.textContent = "エラーが発生しました";
+      msg.style.color = "#ef4444";
+    }
+  }
 </script>
 
 </body>
