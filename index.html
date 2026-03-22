@@ -3,270 +3,199 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Judge Portal v2</title>
+  <title>Judge Knowledge Base</title>
   <style>
     * { box-sizing: border-box; }
     body {
-      margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      margin: 0; font-family: sans-serif;
       background: linear-gradient(180deg, #0f172a, #020617);
-      color: white;
-      min-height: 100vh;
+      color: white; min-height: 100vh;
     }
-    .container { padding: 16px; max-width: 500px; margin: 0 auto; }
-
-    /* ボックス共通 */
+    .container { padding: 16px; max-width: 550px; margin: 0 auto; }
     .box {
-      background: rgba(255,255,255,0.05);
-      backdrop-filter: blur(12px);
-      border-radius: 20px;
-      padding: 20px;
-      margin-bottom: 20px;
+      background: rgba(255,255,255,0.05); backdrop-filter: blur(10px);
+      border-radius: 20px; padding: 20px; margin-bottom: 20px;
       border: 1px solid rgba(255,255,255,0.1);
     }
-
-    /* 登録フォーム */
-    .admin-toggle {
-      text-align: right;
-      margin-bottom: 10px;
-    }
-    .admin-btn {
-      background: none;
-      border: 1px solid rgba(255,255,255,0.3);
-      color: #94a3b8;
-      padding: 4px 12px;
-      border-radius: 8px;
-      font-size: 12px;
-      cursor: pointer;
-    }
-    #addForm { display: none; margin-top: 10px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px; }
+    h2, h3 { margin-top: 0; color: #f1f5f9; }
     
-    /* 入力要素 */
+    /* フォーム入力 */
+    .form-group { margin-bottom: 12px; }
+    label { display: block; font-size: 12px; color: #94a3b8; margin-bottom: 4px; }
     input {
-      width: 100%;
-      padding: 12px;
-      border-radius: 10px;
-      border: 1px solid rgba(255,255,255,0.2);
-      background: rgba(0,0,0,0.2);
-      color: white;
-      margin-bottom: 10px;
-      font-size: 16px;
-      outline: none;
+      width: 100%; padding: 12px; border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3);
+      color: white; font-size: 16px; outline: none;
     }
     input:focus { border-color: #6366f1; }
     
     .submit-btn {
-      width: 100%;
-      padding: 12px;
-      border-radius: 10px;
-      border: none;
-      background: #10b981;
-      color: white;
-      font-weight: bold;
-      cursor: pointer;
+      width: 100%; padding: 14px; border-radius: 12px; border: none;
+      background: #10b981; color: white; font-weight: bold; cursor: pointer;
     }
+    .admin-nav { text-align: right; margin-bottom: 10px; }
+    .btn-ghost { background: none; border: 1px solid #475569; color: #94a3b8; padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; }
 
-    /* タグ関連 */
-    .tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
-    .tag-label { font-size: 12px; color: #94a3b8; margin-top: 15px; }
-    
-    .favorite {
-      padding: 8px 14px; border-radius: 20px;
-      background: linear-gradient(90deg, #f59e0b, #fbbf24);
-      color: black; font-weight: bold; font-size: 12px; cursor: pointer;
-    }
-    .category {
-      padding: 8px 14px; border-radius: 20px;
-      background: rgba(255,255,255,0.15); font-size: 12px; cursor: pointer;
-    }
-    .category.active { background: #6366f1; }
-    .subtag {
-      padding: 6px 12px; border-radius: 8px;
-      background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99,102,241,0.3);
-      font-size: 11px; cursor: pointer; animation: fadeIn 0.3s;
-    }
+    /* タグ・検索用 */
+    .tags-container { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px; }
+    .chip { padding: 6px 12px; border-radius: 20px; font-size: 12px; cursor: pointer; background: rgba(255,255,255,0.1); transition: 0.2s; }
+    .chip:hover { background: #6366f1; }
+    .favorite { background: linear-gradient(90deg, #f59e0b, #fbbf24); color: black; font-weight: bold; }
 
-    /* 検索結果カード */
+    /* 結果カード */
     .card {
-      background: rgba(255,255,255,0.05);
-      border-radius: 16px;
-      padding: 16px;
-      margin-bottom: 12px;
-      border: 1px solid rgba(255,255,255,0.1);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      cursor: pointer;
+      background: rgba(255,255,255,0.07); border-radius: 16px; padding: 16px;
+      margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.1);
     }
-    .card:hover { background: rgba(255,255,255,0.1); }
-    .linkBtn {
-      padding: 8px 16px; border-radius: 8px;
-      background: linear-gradient(90deg, #6366f1, #8b5cf6);
-      color: white; text-decoration: none; font-size: 13px;
+    .card-title { font-size: 17px; font-weight: bold; margin-bottom: 8px; color: #fff; }
+    .card-meta { font-size: 12px; color: #94a3b8; margin-bottom: 12px; display: flex; gap: 10px; }
+    .card-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 12px; }
+    .tag-badge { font-size: 10px; background: rgba(99, 102, 241, 0.2); color: #a5b4fc; padding: 2px 8px; border-radius: 4px; border: 1px solid rgba(99,102,241,0.3); }
+    .open-btn {
+      display: inline-block; width: 100%; text-align: center; padding: 10px;
+      background: linear-gradient(90deg, #6366f1, #8b5cf6); color: white;
+      text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 14px;
     }
 
-    .loading { text-align: center; color: #6366f1; margin: 20px; }
-    .empty { text-align: center; color: #64748b; margin-top: 40px; }
-
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    .loading { text-align: center; color: #6366f1; padding: 20px; }
   </style>
 </head>
 <body>
 
 <div class="container">
-  <div class="admin-toggle">
-    <button class="admin-btn" onclick="toggleAddForm()">＋ データを登録する</button>
+  <div class="admin-nav">
+    <button class="btn-ghost" onclick="toggleForm()">＋ 新規ナレッジ登録</button>
   </div>
 
-  <div id="addForm" class="box" style="display: none;">
-    <h3 style="margin-top:0; font-size: 16px;">新規データ登録</h3>
-    <input id="newTitle" placeholder="タイトル (例: デッキ不備の対応)">
-    <input id="newUrl" placeholder="URL (https://...)">
-    <button class="submit-btn" onclick="registerData()">スプレッドシートに登録</button>
-    <div id="regMsg" style="text-align:center; font-size:12px; margin-top:10px;"></div>
+  <div id="regForm" class="box" style="display: none;">
+    <h3>ナレッジを登録</h3>
+    <div class="form-group">
+      <label>タイトル *</label>
+      <input id="inTitle" placeholder="例: ルーリング裁定（スタック）">
+    </div>
+    <div class="form-group">
+      <label>URL *</label>
+      <input id="inUrl" placeholder="https://...">
+    </div>
+    <div class="form-group">
+      <label>タグ (カンマ区切り)</label>
+      <input id="inTags" placeholder="例: ルール, スタック, 初心者">
+    </div>
+    <div class="form-group">
+      <label>筆者名</label>
+      <input id="inAuthor" placeholder="例: 山田ジャッジ">
+    </div>
+    <button class="submit-btn" onclick="submitData()">スプレッドシートに保存</button>
+    <div id="status" style="text-align:center; font-size:12px; margin-top:10px;"></div>
   </div>
 
   <div class="box">
-    <h2 style="margin-top:0; font-size: 18px;">ナレッジ検索</h2>
-    <input id="k" placeholder="キーワードを入力..." autocomplete="off">
-
-    <div class="tag-label">⭐ よく使う</div>
-    <div id="favorites" class="tags"></div>
-
-    <div class="tag-label">📊 カテゴリ</div>
-    <div id="categories" class="tags"></div>
-    <div id="subtags" class="tags"></div>
+    <input id="searchQuery" placeholder="タイトル、タグ、筆者で検索..." autocomplete="off">
+    <div style="font-size:12px; color:#94a3b8; margin: 15px 0 8px;">⭐ よく使う</div>
+    <div class="tags-container" id="favs"></div>
   </div>
 
-  <div id="list"></div>
+  <div id="results"></div>
 </div>
 
 <script>
-  // 🔴 ここにデプロイしたGASのURLを貼り付けてください
-  const API = "https://script.google.com/macros/s/AKfycbwiJ4r4YWUOqItC53GVU8uGkmQLtAWKbtT6vu96A-rGZe8siQvHWevnr8mX-hIFRD0fOw/exec";
+  // 🔴 あなたのウェブアプリURLをここに貼り付けてください
+  const API_URL = "https://script.google.com/macros/s/AKfycbyh3ijfumhWirBVnMo-KhWWQodKKSY_l6Mha2PjUiuDikKojZKGEYZ6xndLVkux0h31Nw/exec";
 
-  const favorites = ["QA", "トラブル対応", "総合ルール"];
-  const categories = {
-    "初心者": ["未経験者向け", "初ジャッジ", "事前準備", "目標"],
-    "大会運営": ["大会進行", "TIPS", "サイドイベント", "DC", "フィーチャー"],
-    "トラブル": ["トラブル対応", "投了", "デッキ不備", "不正行為", "マークド", "遅いプレイ"],
-    "ルール": ["総合ルール", "QA", "質問ch", "TL"]
-  };
+  const favorites = ["QA", "トラブル対応", "総合ルール", "失格調査"];
 
-  const inputEl = document.getElementById("k");
-  const listEl = document.getElementById("list");
-  let searchTimer;
-
-  // --- 初期化 ---
+  // 初期化
   window.onload = () => {
-    renderTags();
+    const favsDiv = document.getElementById("favs");
+    favorites.forEach(text => {
+      const span = document.createElement("div");
+      span.className = "chip favorite";
+      span.textContent = text;
+      span.onclick = () => { document.getElementById("searchQuery").value = text; doSearch(); };
+      favsDiv.appendChild(span);
+    });
   };
 
-  function renderTags() {
-    const favContainer = document.getElementById("favorites");
-    favorites.forEach(word => {
-      const el = document.createElement("div");
-      el.className = "favorite";
-      el.textContent = word;
-      el.onclick = () => { inputEl.value = word; search(); };
-      favContainer.appendChild(el);
-    });
-
-    const catContainer = document.getElementById("categories");
-    Object.keys(categories).forEach(cat => {
-      const el = document.createElement("div");
-      el.className = "category";
-      el.textContent = cat;
-      el.onclick = () => showSubtags(cat, el);
-      catContainer.appendChild(el);
-    });
+  // フォーム表示切り替え
+  function toggleForm() {
+    const f = document.getElementById("regForm");
+    f.style.display = f.style.display === "none" ? "block" : "none";
   }
 
-  function showSubtags(cat, btn) {
-    document.querySelectorAll('.category').forEach(el => el.classList.remove('active'));
-    btn.classList.add('active');
-    
-    const subContainer = document.getElementById("subtags");
-    subContainer.innerHTML = "";
-    categories[cat].forEach(word => {
-      const el = document.createElement("div");
-      el.className = "subtag";
-      el.textContent = word;
-      el.onclick = () => { inputEl.value = word; search(); };
-      subContainer.appendChild(el);
-    });
-  }
-
-  // --- 検索機能 ---
-  inputEl.addEventListener("input", () => {
-    clearTimeout(searchTimer);
-    searchTimer = setTimeout(search, 400);
+  // 検索処理
+  let debounceTimer;
+  document.getElementById("searchQuery").addEventListener("input", () => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(doSearch, 400);
   });
 
-  async function search() {
-    const keyword = inputEl.value.trim();
-    if (!keyword) { listEl.innerHTML = ""; return; }
+  async function doSearch() {
+    const q = document.getElementById("searchQuery").value.trim();
+    const resDiv = document.getElementById("results");
+    if (!q) { resDiv.innerHTML = ""; return; }
 
-    listEl.innerHTML = `<div class="loading">検索中...</div>`;
+    resDiv.innerHTML = `<div class="loading">検索中...</div>`;
 
     try {
-      const res = await fetch(`${API}?keyword=${encodeURIComponent(keyword)}`);
-      const data = await res.json();
-      
-      listEl.innerHTML = "";
+      const response = await fetch(`${API_URL}?keyword=${encodeURIComponent(q)}`);
+      const data = await response.json();
+
+      resDiv.innerHTML = "";
       if (data.length === 0) {
-        listEl.innerHTML = `<div class="empty">該当なし</div>`;
+        resDiv.innerHTML = `<div style="text-align:center; color:#64748b;">該当なし</div>`;
         return;
       }
 
       data.forEach(row => {
+        // row[1]=タイトル, row[2]=URL, row[3]=タグ, row[4]=筆者
+        const tagsHtml = row[3] ? row[3].split(',').map(t => `<span class="tag-badge">${t.trim()}</span>`).join('') : '';
         const card = document.createElement("div");
         card.className = "card";
         card.innerHTML = `
-          <div style="font-weight:bold; flex:1; padding-right:10px;">${row[1]}</div>
-          <a href="${row[2]}" target="_blank" class="linkBtn">📄 開く</a>
+          <div class="card-title">${row[1]}</div>
+          <div class="card-meta">
+            <span>👤 ${row[4] || '不明'}</span>
+          </div>
+          <div class="card-tags">${tagsHtml}</div>
+          <a href="${row[2]}" target="_blank" class="open-btn">📄 内容を確認する</a>
         `;
-        card.onclick = (e) => { if(e.target.tagName !== 'A') window.open(row[2], "_blank"); };
-        listEl.appendChild(card);
+        resDiv.appendChild(card);
       });
     } catch (e) {
-      listEl.innerHTML = `<div class="empty">エラーが発生しました</div>`;
+      resDiv.innerHTML = `<div style="text-align:center; color:#ef4444;">通信エラー</div>`;
     }
   }
 
-  // --- 登録機能 ---
-  function toggleAddForm() {
-    const f = document.getElementById("addForm");
-    f.style.display = (f.style.display === "none") ? "block" : "none";
-  }
+  // 登録処理
+  async function submitData() {
+    const title = document.getElementById("inTitle").value;
+    const url = document.getElementById("inUrl").value;
+    const tags = document.getElementById("inTags").value;
+    const author = document.getElementById("inAuthor").value;
+    const stat = document.getElementById("status");
 
-  async function registerData() {
-    const title = document.getElementById("newTitle").value;
-    const url = document.getElementById("newUrl").value;
-    const msg = document.getElementById("regMsg");
+    if (!title || !url) { alert("タイトルとURLは必須です"); return; }
 
-    if (!title || !url) return alert("入力してください");
-
-    msg.textContent = "送信中...";
-    msg.style.color = "#aaa";
+    stat.textContent = "送信中...";
+    stat.style.color = "#aaa";
 
     try {
-      const res = await fetch(API, {
+      const res = await fetch(API_URL, {
         method: "POST",
-        body: JSON.stringify({ title, url })
+        body: JSON.stringify({ title, url, tags, author })
       });
       const result = await res.json();
 
       if (result.status === "success") {
-        msg.textContent = "登録完了！";
-        msg.style.color = "#10b981";
-        document.getElementById("newTitle").value = "";
-        document.getElementById("newUrl").value = "";
-        setTimeout(() => { toggleAddForm(); msg.textContent = ""; }, 2000);
+        stat.textContent = "登録完了しました！";
+        stat.style.color = "#10b981";
+        // フォームをクリア
+        ["inTitle", "inUrl", "inTags", "inAuthor"].forEach(id => document.getElementById(id).value = "");
+        setTimeout(() => { toggleForm(); stat.textContent = ""; }, 2000);
       }
     } catch (e) {
-      msg.textContent = "エラーが発生しました";
-      msg.style.color = "#ef4444";
+      stat.textContent = "登録に失敗しました";
+      stat.style.color = "#ef4444";
     }
   }
 </script>
